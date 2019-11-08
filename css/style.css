@@ -1,0 +1,89 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
+body{
+    font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    background-color: grey;
+}
+
+.menu-bar{
+    width: 573px;
+    height: 100px;
+    margin: 0px auto;
+    background-color: white;
+    border: 6px solid black;
+}
+
+div{
+    height: 585px;
+    width: 585px;
+    background-color:white;
+    position: relative;
+    margin:0px auto;
+}
+
+canvas{
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+}
+
+.go-back  {
+    display: none;
+    margin:10px 0px 0px 10px;
+    width: 30px;
+    height: 30px;
+    float: left;
+}
+
+.go-back:hover {
+    cursor: pointer;
+}
+
+.gp-bottons{
+    height: 100px;
+    width: 500px;
+    display: inline-block;
+}
+
+.button{
+    /* display: none; */
+    color: white;
+    margin-right: 20px;
+    margin-top: 25px;
+    padding: 10px;
+    line-height: 15px;
+    text-align: center;
+    height: 30px;
+    width: 160px;
+    border-radius: 35px;
+    background-color:black;
+    word-wrap: break-word;
+    float: right
+}
+
+.button:hover {
+    cursor: pointer;
+}
+
+.button-2:hover {
+    cursor: pointer;
+}
+
+
+.button-2{
+    display: none;
+    color: white;
+    margin-right: 30px;
+    margin-top: 30px;
+    padding: 10px;
+    line-height: 30px;
+    text-align: center;
+    height: 30px;
+    width: 100px;
+    border-radius: 35px;
+    background-color:black;
+    word-wrap: break-word;
+    float: right
+}
