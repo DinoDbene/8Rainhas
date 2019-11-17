@@ -6,62 +6,61 @@
     var HEIGHT = cnv.height
 
     var tileSize = 59
-    var spriteSize = 100
-// Inserindo o sprit sheet do personagem
-    var trump = new Image()
-        trump.src = "img/trump_run.png"
-        trump.addEventListener("load", function() {
+    var spriteSize = 64
+
+// Inserindo o sprit sheet da Rainha
+    var Rainha = new Image()
+        Rainha.src = "img/xadrez.png"
+        Rainha.addEventListener("load", function() {
         requestAnimationFrame(loop, cnv)
 
     }, false)
-// Inserindo o sprit sheet do goal
-    var dollar = new Image()
-        dollar.src = "img/dollar.png"
-        dollar.addEventListener("load", function() {
+// Inserindo o sprit sheet do Bloqueado
+    var Bloqueado = new Image()
+        Bloqueado.src = "img/bloqueado.png"
+        Bloqueado.addEventListener("load", function() {
         requestAnimationFrame(loop, cnv)
 
     }, false)
 
 
-// Criando labirinto vazio
+// Criando matriz do tabuleiro
 
-    var maze = [[{}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
-                [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
-                [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
-                [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
-                [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
-                [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
-                [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
-                [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
-                [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
-                [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
-            ]
+    var tabuleiro = [[{}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
+                    [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
+                    [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
+                    [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
+                    [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
+                    [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
+                    [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
+                    [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
+                    [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
+                    [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
+                ]
 
     // Inicializa cada objeto da matriz
-    function initMaze() {
-        for (var row in maze) {
-            for (var column in maze[row]) {
-                maze[row][column].row = Number(row)
-                maze[row][column].column = Number(column)
-                maze[row][column].distance = Number.MAX_VALUE
-                maze[row][column].dad = null
-                maze[row][column].value = 0
-                maze[row][column].status = 1 // Existe 2 status{0 = bloqueado, 1 = disponivel}
+    function initTabuleiro() {
+        for (var row in tabuleiro) {
+            for (var column in tabuleiro[row]) {
+                tabuleiro[row][column].row = Number(row)
+                tabuleiro[row][column].column = Number(column)
+                tabuleiro[row][column].value = 0
+                tabuleiro[row][column].status = 1 // Existe 2 status{0 = bloqueado, 1 = disponivel}
             }
         } 
     }
 
-     initMaze()
+     initTabuleiro()
     
-    let nInicio = maze[1][1]
-    let nFinal = maze[9][9]
+    let nInicio = tabuleiro[1][7]
+    let nFinal = tabuleiro[8][5]
 
-    // configuranda os atributos do personagem
-    const player = {
-        x: (nInicio.column)*(tileSize+2),
-        y: (nInicio.row)*(tileSize+2),
-        width: tileSize-10,
-        height: tileSize-10,
+    // configuranda os atributos das rainhas
+    const rainha = {
+        x: (nInicio.column)*(tileSize),
+        y: (nInicio.row)*(tileSize),
+        width: tileSize,
+        height: tileSize,
         velocidade: 1,
         srcX: 0,
         srcY: 0,
@@ -69,8 +68,8 @@
         isSelected: false
     }
 
-    // configuranda os atributos do alvo
-    const goal = {
+    // configuranda os atributos dos bloqueios
+    const bloqueio = {
         x: (nFinal.column)*(tileSize),
         y: (nFinal.row)*(tileSize),
         width: tileSize,
@@ -86,27 +85,28 @@
     // Gera borda do labirinto
     function borderCreate() {
         
-        for (var row in maze) {
-            for (var column in maze[row]) {
+        for (var row in tabuleiro) {
+            for (var column in tabuleiro[row]) {
                 if (column == 0 || column == 9 || row == 0 || row == 9) {
-                    maze[row][column].value = 1
+                    tabuleiro[row][column].value = 1
+                    tabuleiro[row][column].status = 0
                 }
             }
         }
     }
     
-    // GERA A GRADE E VAI ZERANDO ALGUNS EXCETO AS DUPLAS IMPARES
+    // GERA OS QUADRADOS DO TABULEIRO
     function gridCreate(){
 
-        for (var row in maze) {
-            for (var column in maze[row]) {
+        for (var row in tabuleiro) {
+            for (var column in tabuleiro[row]) {
                 
                 if (!impar(row) && impar(column)) {
-                    maze[row][column].value = 1
+                    tabuleiro[row][column].value = 1
                 }
 
                 if (impar(row) && !impar(column)) {
-                    maze[row][column].value = 1
+                    tabuleiro[row][column].value = 1
                 }
             }
         }
@@ -116,38 +116,200 @@
     borderCreate()
     
 
-    var queue = []
-
-    function buscaEmLargura(maze, nInicio, nFinal) {
-        // for
-        //      O algoritmo insere uma rainha
-        //      solucao.push(rainha)
-        //      Se (espaço disponivel) {
-        //          checkpoint = solucao
-        //      } else {
-        //          solucao = checkpoint
-        //      }
-        //      procura a proxima coluna disponivel
+    var rainhas = []
+    var lastUpdate = []
+    var bloqueados = []
 
 
- 
-           
+    // - Recebe o tabuleiro 
+    // - Verifica se ha algum campo disponivel
+    // - Retorna o campo se holver
+    function procurar(tabuleiro) {
+        let avaiable = false
+
+        for (let row = 0; row < tabuleiro.length; row++) {
+            for (let column = 0; column < tabuleiro[row].length; column++) {
+                 
+                if (tabuleiro[row][column].status === 1) {
+                    avaiable = true
+                    console.log(tabuleiro[row][column])
+                    return [avaiable, tabuleiro[row][column]]
+                }    
+            }  
+        }
+        
+        if (!avaiable) {
+            return [avaiable]
+        }
     }
+
+
+    // - Recebe o tabuleiro 
+    // - Insere a rainha
+    // - Bloqueia linha, coluna e diagonal da rainha 
+    // - Retorna o novo tabuleiro
+    function reBloquear(tabuleiro, rainhas) {
+
+        for (let i = 0; i < tabuleiro.length; i++) {
+            for (let j = 0; j < tabuleiro[i].length; j++) {
+
+                laterais = (i == 0 || i == 9 || j == 0 || j == 9) 
+
+                if (!laterais) {
+                    tabuleiro[i][j].status = 1 
+                }
+                
+                
+            }
+            
+        }
+
+        for (let r = 0; r < rainhas.length; r++) {
+            let x = rainhas[r].column
+            let y = rainhas[r].row
+
+            // // Zera a linha
+            for (let i = 0; i < tabuleiro[y].length; i++) {
+                laterais = (i == 0 || i == 9) 
+
+                if (!laterais) {
+                    tabuleiro[y][i].status = 0
+                }        
+            }
+
+            // // Zera a coluna
+            for (let i = 0; i < tabuleiro.length; i++) {
+                laterais = (i == 0 || i == 9) 
+
+                if (!laterais) {
+                    tabuleiro[i][x].status = 0
+                }        
+            }
+
+            // Zera a diagonal
+            let k = x
+
+            for (let i = y; (i < 9) && (k < 9); i++) {    
+                for (let j = k; j < k+1; j++) {
+                    laterais = (i == 0 || i == 9 || j == 0 || j == 9) 
+
+                    if (!laterais) {
+                        tabuleiro[i][j].status = 0 
+                    }       
+                } 
+                k++ 
+            }
+
+            for (let i = 0; i < bloqueados.length; i++) {
+                bloqueados[i].status = 0
+                
+            }
+        }
+    } 
+
+    function inserirBloquear(tabuleiro, avaiable) {
+        lastUpdate = []
+
+        let x = avaiable.column
+        let y = avaiable.row
+
+        rainhas.push(avaiable)
+
+        // // Zera a linha
+        for (let i = 0; i < tabuleiro[y].length; i++) {
+            laterais = (i == 0 || i == 9) 
+
+            if (!laterais && tabuleiro[y][i].status !== 0) {
+                tabuleiro[y][i].status = 0
+            }        
+        }
+
+        // // Zera a coluna
+        for (let i = 0; i < tabuleiro.length; i++) {
+            laterais = (i == 0 || i == 9) 
+
+            if (!laterais && tabuleiro[i][x].status !== 0) {
+                tabuleiro[i][x].status = 0
+            }        
+        }
+
+        // Zera a diagonal
+        let k = x
+
+        for (let i = y; (i < 9) && (k < 9); i++) {    
+            for (let j = k; j < k+1; j++) {
+                laterais = (i == 0 || i == 9 || j == 0 || j == 9) 
+
+                if (!laterais && tabuleiro[i][j].status !== 0) {
+                    tabuleiro[i][j].status = 0 
+                }       
+            } 
+            k++ 
+        }
+    
+        return tabuleiro
+    }
+
+    // - Recebe o tabuleiro 
+    // - remove a ultima rainha
+    // - Desbloqueia linha, coluna e diagonal da rainha removida
+    // - Retorna o novo tabuleiro
+    function removerDesbloquear() {
+        let x = rainhas[rainhas.length-1].column
+        let y = rainhas[rainhas.length-1].row
+
+        bloqueados.push(tabuleiro[y][x])
+
+        rainhas.pop()
+        
+        reBloquear(tabuleiro, rainhas)
+
+        return tabuleiro
+    }
+  
+    function inserirRainha() {
+        console.log(rainhas)
+           
+        let disponivel = procurar(tabuleiro)
+
+        console.log("disponivel: "+disponivel[0])
+        if (disponivel[0]) {
+            inserirBloquear(tabuleiro, disponivel[1])
+
+        } else {
+            removerDesbloquear(tabuleiro)
+            // inserirRainha()
+        }
+        // inserirBloquear(tabuleiro, procurar(tabuleiro))
+        
+    }
+
 gridCreate()
+
+function reset() {
+    initTabuleiro()
+    borderCreate()
+    gridCreate()
+
+    rainhas = []
+    ctx.clearRect(0, 0, WIDTH, HEIGHT)
+    ctx.save()
+    console.log(rainhas)
+}
 
 // Função de atualizar a tela
     function update() {
         
-
+        
     }
-// Função que renderiza a matriz "maze" e a animação do personagem
+// Função que renderiza tabuleiro, bloqueios e rainhas
     function render() {
         // Tabuleiro
         ctx.clearRect(0, 0, WIDTH, HEIGHT)
         ctx.save()
-        for (let row in maze) {
-            for (let column in maze[row]) {
-                let tile = maze[row][column].value
+        for (let row in tabuleiro) {
+            for (let column in tabuleiro[row]) {
+                let tile = tabuleiro[row][column].value
 
                 if (tile === 1) {
                     let x = column*tileSize
@@ -156,28 +318,41 @@ gridCreate()
                 }
             }
         }
-        // Desenha o caminho
 
-        // Rederiza o Dollar enquando o player não estiver encima dele
-        // if (!(player.x > goal.x-10 && player.x < goal.x+10
-        //     && player.y > goal.y-10 && player.y < goal.y+10)) {
-        //     ctx.drawImage(
-        //         dollar,
-        //         goal.srcX, goal.srcY, 550, 550,
-        //         goal.x, goal.y, goal.width, goal.height
-        //     )
-        // } else {
-        //     console.log("Você conseguiu!!")
-        // }
-        
-        // Renderiza o personagem
-        // ctx.drawImage(
-        //     trump,
-        //     player.srcX, player.srcY, spriteSize, spriteSize,
-        //     player.x-15, player.y-21, player.width+30, player.height+30
-        // )
-        
+        // Rederiza os campos bloqueados
+        for (let row = 0; row < tabuleiro.length; row++) {
+            for (let column = 0; column < tabuleiro[row].length; column++) {
+                laterais = (column == 0 || column == 9 || row == 0 || row == 9) 
+
+                if (tabuleiro[row][column].status === 0 && !laterais) {
+                    let x = tabuleiro[row][column].column
+                    let y = tabuleiro[row][column].row
+
+                    ctx.drawImage(
+                        Bloqueado,
+                        bloqueio.srcX, bloqueio.srcY, 512, 512,
+                        x*(tileSize), y*(tileSize), bloqueio.width, bloqueio.height
+                    ) 
+                }    
+            }  
+        }
+             
+        // Renderiza as rainhas
+        for (let i = 0; i < rainhas.length; i++) {
+            // laterais = (column == 0 || column == 9 || row == 0 || row == 9) 
+
+            
+            let x = rainhas[i].column
+            let y = rainhas[i].row
+
+            ctx.drawImage(
+                Rainha,
+                rainha.srcX, rainha.srcY, spriteSize, spriteSize,
+                x*(tileSize), y*(tileSize), rainha.width, rainha.height
+            )     
+        }
     }
+
 // Faz com que o jogo continue iterando
     function loop() {
         update()
