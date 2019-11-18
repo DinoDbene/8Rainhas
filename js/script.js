@@ -119,7 +119,7 @@
     var rainhas = []
     var lastUpdate = []
     var bloqueados = []
-
+   
 
     // - Recebe o tabuleiro 
     // - Verifica se ha algum campo disponivel
@@ -210,17 +210,17 @@
     function inserirBloquear(tabuleiro, avaiable) {
         lastUpdate = []
 
-        let x = avaiable.column
-        let y = avaiable.row
+        let column = avaiable.column
+        let row = avaiable.row
 
         rainhas.push(avaiable)
 
         // // Zera a linha
-        for (let i = 0; i < tabuleiro[y].length; i++) {
+        for (let i = 0; i < tabuleiro[row].length; i++) {
             laterais = (i == 0 || i == 9) 
 
-            if (!laterais && tabuleiro[y][i].status !== 0) {
-                tabuleiro[y][i].status = 0
+            if (!laterais && tabuleiro[row][i].status !== 0) {
+                tabuleiro[row][i].status = 0
             }        
         }
 
@@ -228,25 +228,35 @@
         for (let i = 0; i < tabuleiro.length; i++) {
             laterais = (i == 0 || i == 9) 
 
-            if (!laterais && tabuleiro[i][x].status !== 0) {
-                tabuleiro[i][x].status = 0
+            if (!laterais && tabuleiro[i][column].status !== 0) {
+                tabuleiro[i][column].status = 0
             }        
         }
 
         // Zera a diagonal
-        let k = x
+        for (let k = 0; k < tabuleiro.length; k++) {
+            if (k < ( tabuleiro.length-1-row) && ((column+k)< tabuleiro.length-1)) {
 
-        for (let i = y; (i < 9) && (k < 9); i++) {    
-            for (let j = k; j < k+1; j++) {
-                laterais = (i == 0 || i == 9 || j == 0 || j == 9) 
+                tabuleiro[row+k][column+k].status = 0
+            }
 
-                if (!laterais && tabuleiro[i][j].status !== 0) {
-                    tabuleiro[i][j].status = 0 
-                }       
-            } 
-            k++ 
-        }
-    
+            if (k < ( tabuleiro.length-1-row) && ((column-k)>=0)) {
+
+                tabuleiro[row+k][column-k].status = 0
+            }
+        }  
+
+        // Diagonais para cima
+        for (let k = 0; k < tabuleiro.length; k++) {
+            if (k > 0 && ((column-k)>0)) {
+                tabuleiro[row-k][column-k].status = 0
+            }
+
+            if (k > 0 && ((column+k)< tabuleiro.length-1)) {
+                tabuleiro[row-k][column+k].status = 0
+            }
+        } 
+
         return tabuleiro
     }
 
@@ -275,7 +285,7 @@
         console.log("disponivel: "+disponivel[0])
         if (disponivel[0]) {
             inserirBloquear(tabuleiro, disponivel[1])
-
+            // inserirBloquear(tabuleiro, tabuleiro[3][5])
         } else {
             removerDesbloquear(tabuleiro)
             // inserirRainha()
