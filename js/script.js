@@ -127,18 +127,30 @@
     function procurar(tabuleiro) {
         let avaiable = false
 
-        for (let row = 0; row < tabuleiro.length; row++) {
-            for (let column = 0; column < tabuleiro[row].length; column++) {
-                 
+        // Se houver rainhas no array
+        if (rainhas.length !== 0) {
+
+            // Pega a linha da ultima e soma +1 para descer para a linha de baixo
+            let row = rainhas[rainhas.length-1].row
+            row++
+
+            // Itera as colunas na linha definida acima na variavel "row"
+            for (let column = 0; column < tabuleiro.length; column++) {
+                // console.log("["+row+","+column+"]")
+
                 if (tabuleiro[row][column].status === 1) {
                     avaiable = true
-                    console.log(tabuleiro[row][column])
                     return [avaiable, tabuleiro[row][column]]
-                }    
-            }  
+                }  
+            
+            }
+        } else {
+            avaiable = true
+            return [avaiable, tabuleiro[1][1]]
         }
         
         if (!avaiable) {
+            console.log("indisponivel")
             return [avaiable]
         }
     }
@@ -150,6 +162,7 @@
     // - Retorna o novo tabuleiro
     function reBloquear(tabuleiro, rainhas) {
 
+        // Libera tdas as posições
         for (let i = 0; i < tabuleiro.length; i++) {
             for (let j = 0; j < tabuleiro[i].length; j++) {
 
@@ -157,16 +170,16 @@
 
                 if (!laterais) {
                     tabuleiro[i][j].status = 1 
-                }
-                
-                
-            }
-            
+                }                            
+            }            
         }
-
+        
+        // Itera o vetor de rainhas e opera os bloqueios novamente
         for (let r = 0; r < rainhas.length; r++) {
             let x = rainhas[r].column
             let y = rainhas[r].row
+            let row = y
+            let column = x
 
             // // Zera a linha
             for (let i = 0; i < tabuleiro[y].length; i++) {
@@ -185,21 +198,32 @@
                     tabuleiro[i][x].status = 0
                 }        
             }
+          
+            // Zera as diagonais para baixo
+            for (let k = 0; k < tabuleiro.length; k++) {
+                if (k < ( tabuleiro.length-1-row) && ((column+k)< tabuleiro.length-1)) {
+                    tabuleiro[row+k][column+k].status = 0
+                }
 
-            // Zera a diagonal
-            let k = x
+                if (k < ( tabuleiro.length-1-row) && ((column-k)>=0)) {
+                    tabuleiro[row+k][column-k].status = 0
+                }
+            }  
 
-            for (let i = y; (i < 9) && (k < 9); i++) {    
-                for (let j = k; j < k+1; j++) {
-                    laterais = (i == 0 || i == 9 || j == 0 || j == 9) 
+            // Zera as diagonais para cima
+            for (let k = 0; k < tabuleiro.length; k++) {
+                if ((row-k) > 0 && ((column-k)>0)) {
+                    tabuleiro[row-k][column-k].status = 0
+                }
 
-                    if (!laterais) {
-                        tabuleiro[i][j].status = 0 
-                    }       
-                } 
-                k++ 
-            }
+                if ((row-k) > 0 && ((column+k)<tabuleiro.length-1)) {
+                    tabuleiro[row-k][column+k].status = 0
+                }
+            } 
 
+            
+
+            // Zera o elementos do array de bloqueados(antigas rainhas)
             for (let i = 0; i < bloqueados.length; i++) {
                 bloqueados[i].status = 0
                 
@@ -233,26 +257,24 @@
             }        
         }
 
-        // Zera a diagonal
+        // Zera as diagonais para baixo
         for (let k = 0; k < tabuleiro.length; k++) {
             if (k < ( tabuleiro.length-1-row) && ((column+k)< tabuleiro.length-1)) {
-
                 tabuleiro[row+k][column+k].status = 0
             }
 
             if (k < ( tabuleiro.length-1-row) && ((column-k)>=0)) {
-
                 tabuleiro[row+k][column-k].status = 0
             }
         }  
 
-        // Diagonais para cima
+        // Zera as diagonais para cima
         for (let k = 0; k < tabuleiro.length; k++) {
-            if (k > 0 && ((column-k)>0)) {
+            if ((row-k) > 0 && ((column-k)>0)) {
                 tabuleiro[row-k][column-k].status = 0
             }
 
-            if (k > 0 && ((column+k)< tabuleiro.length-1)) {
+            if ((row-k) > 0 && ((column+k)<tabuleiro.length-1)) {
                 tabuleiro[row-k][column+k].status = 0
             }
         } 
@@ -267,10 +289,27 @@
     function removerDesbloquear() {
         let x = rainhas[rainhas.length-1].column
         let y = rainhas[rainhas.length-1].row
-
-        bloqueados.push(tabuleiro[y][x])
-
+        console.log("remove a ultima rainha:["+y+","+x+"]")
         rainhas.pop()
+        
+        console.log("bloqueados: "+bloqueados.length)
+        console.log("bloqueia a posição da ultima rainha")
+        bloqueados.push(tabuleiro[y][x])
+        console.log("linha da rainha removida: "+ y)
+        console.log("bloqueados: "+bloqueados.length)
+
+
+        // Se a linha do bloqueado for abaixo da ultima rainha ele é desbloqueado
+        let blockR = bloqueados[bloqueados.length-1].row
+        for (let i = bloqueados.length-1; i >= 0; i--) {
+            
+            if (bloqueados[i].row > y) {
+                bloqueados.splice(0,i)
+            }
+        }
+        console.log("bloqueados: "+bloqueados.length)
+        bloqueados.push(tabuleiro[y][x])
+        
         
         reBloquear(tabuleiro, rainhas)
 
@@ -278,20 +317,23 @@
     }
   
     function inserirRainha() {
-        console.log(rainhas)
-           
-        let disponivel = procurar(tabuleiro)
-
-        console.log("disponivel: "+disponivel[0])
-        if (disponivel[0]) {
-            inserirBloquear(tabuleiro, disponivel[1])
-            // inserirBloquear(tabuleiro, tabuleiro[3][5])
-        } else {
-            removerDesbloquear(tabuleiro)
-            // inserirRainha()
-        }
-        // inserirBloquear(tabuleiro, procurar(tabuleiro))
         
+        // while (rainhas.length < 8) {
+            console.log("------- temos: "+rainhas.length+ "Rainhas")
+            let disponivel = procurar(tabuleiro) // Procurar so na linha abaixo da ultima rainha e retorna "true" e a posição disponivel
+                                                //  e se não encontrar retona "false"
+            console.log("linha de baixo disponivel: "+ disponivel)
+            if (disponivel[0]) {
+                console.log("Insere e bloqueia")
+                inserirBloquear(tabuleiro, disponivel[1])
+                // inserirBloquear(tabuleiro, tabuleiro[3][5])
+            } else {
+                
+                removerDesbloquear(tabuleiro) // bloqueia a ultima rainha e remove do array
+                // inserirRainha()
+            }
+            // inserirBloquear(tabuleiro, procurar(tabuleiro))
+        // } 
     }
 
 gridCreate()
