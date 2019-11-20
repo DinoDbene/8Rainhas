@@ -1,0 +1,5 @@
+- verifica disponibilidade na linha abaixo da ultima rainha
+- SE disponivel:
+	- insere nova rainha e bloqueia diagonais linha e coluna
+- SE NAO: 
+	- remove a ultima rainha, desbloqueia linha diagonal e coluna e bloqueia a posição da rainha removida

@@ -52,6 +52,7 @@
 
      initTabuleiro()
     
+    //  Pra teste
     let nInicio = tabuleiro[1][7]
     let nFinal = tabuleiro[8][5]
 
@@ -61,11 +62,8 @@
         y: (nInicio.row)*(tileSize),
         width: tileSize,
         height: tileSize,
-        velocidade: 1,
         srcX: 0,
         srcY: 0,
-        countAnim: 0,
-        isSelected: false
     }
 
     // configuranda os atributos dos bloqueios
@@ -74,15 +72,13 @@
         y: (nFinal.row)*(tileSize),
         width: tileSize,
         height: tileSize,
-        velocidade: 1,
         srcX: 0,
         srcY: 0,
-        isSelected: false
     }
     // Verifica se o numero é impar
     impar = num => num%2!=0? true : false
     
-    // Gera borda do labirinto
+    // Gera borda do tabuleiro
     function borderCreate() {
         
         for (var row in tabuleiro) {
@@ -95,7 +91,7 @@
         }
     }
     
-    // GERA OS QUADRADOS DO TABULEIRO
+    // GERA OS QUADRADOS DO TABULEIRO(xadrez)
     function gridCreate(){
 
         for (var row in tabuleiro) {
@@ -136,7 +132,6 @@
 
             // Itera as colunas na linha definida acima na variavel "row"
             for (let column = 0; column < tabuleiro.length; column++) {
-                // console.log("["+row+","+column+"]")
 
                 if (tabuleiro[row][column].status === 1) {
                     avaiable = true
@@ -150,7 +145,6 @@
         }
         
         if (!avaiable) {
-            console.log("indisponivel")
             return [avaiable]
         }
     }
@@ -287,53 +281,57 @@
     // - Desbloqueia linha, coluna e diagonal da rainha removida
     // - Retorna o novo tabuleiro
     function removerDesbloquear() {
+        // salvo as cndenadas da ultima rainha inserida no tabuleiro
         let x = rainhas[rainhas.length-1].column
         let y = rainhas[rainhas.length-1].row
-        console.log("remove a ultima rainha:["+y+","+x+"]")
-        rainhas.pop()
-        
-        console.log("bloqueados: "+bloqueados.length)
-        console.log("bloqueia a posição da ultima rainha")
-        bloqueados.push(tabuleiro[y][x])
-        console.log("linha da rainha removida: "+ y)
-        console.log("bloqueados: "+bloqueados.length)
+        let backup = []
+       
 
+        if (bloqueados.length !== 0) {
 
-        // Se a linha do bloqueado for abaixo da ultima rainha ele é desbloqueado
-        let blockR = bloqueados[bloqueados.length-1].row
-        for (let i = bloqueados.length-1; i >= 0; i--) {
+            // blockR é a linha da ultima rainha inseridas no array de bloqueados
+            let blockR = bloqueados[bloqueados.length-1].row
             
-            if (bloqueados[i].row > y) {
-                bloqueados.splice(0,i)
+            // Veifica se não ha bloqueados no mesmo nivel da rainha atual pois eles devem ser mantidos
+            for(let i = 0; i<bloqueados.length; i++) {
+                if (bloqueados[i].row <= y) {
+                    backup.push(bloqueados[i])
+                }
             }
-        }
-        console.log("bloqueados: "+bloqueados.length)
+            
+            if (y !== blockR) {
+                //  Se nã holver bloqueio em algum nivel anterior bloqueado recebe um array vazio
+                bloqueados = backup              
+            }
+        } 
+        
+        // Adiciona a rainha removida no array de bloqueados 
         bloqueados.push(tabuleiro[y][x])
-        
-        
+
+        // remove a ultima rainha do array de rainhas
+        rainhas.pop()
+
+        // Reinicia os status do tabuleiro para dispnivel e re-insere os bloqueios referentes as rainhas restantes no array de rainhas
         reBloquear(tabuleiro, rainhas)
 
         return tabuleiro
     }
-  
+
+
     function inserirRainha() {
-        
-        // while (rainhas.length < 8) {
-            console.log("------- temos: "+rainhas.length+ "Rainhas")
+        while (rainhas.length !== 8) {
+
             let disponivel = procurar(tabuleiro) // Procurar so na linha abaixo da ultima rainha e retorna "true" e a posição disponivel
                                                 //  e se não encontrar retona "false"
-            console.log("linha de baixo disponivel: "+ disponivel)
+
             if (disponivel[0]) {
-                console.log("Insere e bloqueia")
                 inserirBloquear(tabuleiro, disponivel[1])
-                // inserirBloquear(tabuleiro, tabuleiro[3][5])
             } else {
-                
-                removerDesbloquear(tabuleiro) // bloqueia a ultima rainha e remove do array
-                // inserirRainha()
+                removerDesbloquear(tabuleiro) // insere a ultima rainha no array de bloqueados e remove do array de rainhas
+                                            // Desbloqueia as posições de linha, coluna e diagonal referentes a rainha removida 
             }
-            // inserirBloquear(tabuleiro, procurar(tabuleiro))
-        // } 
+        }
+    
     }
 
 gridCreate()
@@ -346,7 +344,6 @@ function reset() {
     rainhas = []
     ctx.clearRect(0, 0, WIDTH, HEIGHT)
     ctx.save()
-    console.log(rainhas)
 }
 
 // Função de atualizar a tela
@@ -391,8 +388,6 @@ function reset() {
              
         // Renderiza as rainhas
         for (let i = 0; i < rainhas.length; i++) {
-            // laterais = (column == 0 || column == 9 || row == 0 || row == 9) 
-
             
             let x = rainhas[i].column
             let y = rainhas[i].row
