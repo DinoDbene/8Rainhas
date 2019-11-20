@@ -3,3 +3,4 @@
 	- insere nova rainha e bloqueia diagonais linha e coluna
 - SE NAO: 
 	- remove a ultima rainha, desbloqueia linha diagonal e coluna e bloqueia a posição da rainha removida
+	- Se tive bloqueados na linha da rainha atual ou na linha acima, eles não podem ser apagados12:39 20/11/2019
