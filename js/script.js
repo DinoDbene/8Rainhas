@@ -280,7 +280,7 @@
     // - remove a ultima rainha
     // - Desbloqueia linha, coluna e diagonal da rainha removida
     // - Retorna o novo tabuleiro
-    function removerDesbloquear() {
+    function    removerDesbloquear() {
         // salvo as cndenadas da ultima rainha inserida no tabuleiro
         let x = rainhas[rainhas.length-1].column
         let y = rainhas[rainhas.length-1].row
@@ -317,23 +317,35 @@
         return tabuleiro
     }
 
-
+    
     function inserirRainha() {
+        let tentativas = 0
         while (rainhas.length !== 8) {
 
-            let disponivel = procurar(tabuleiro) // Procurar so na linha abaixo da ultima rainha e retorna "true" e a posição disponivel
-                                                //  e se não encontrar retona "false"
+            if (rainhas.length === 0) {
+                let c = Math.floor(Math.random()*8)+1
+                // console.log(c)
+                inserirBloquear(tabuleiro, tabuleiro[1][c])
 
-            if (disponivel[0]) {
-                inserirBloquear(tabuleiro, disponivel[1])
             } else {
-                removerDesbloquear(tabuleiro) // insere a ultima rainha no array de bloqueados e remove do array de rainhas
-                                            // Desbloqueia as posições de linha, coluna e diagonal referentes a rainha removida 
+
+                let disponivel = procurar(tabuleiro) // Procurar so na linha abaixo da ultima rainha e retorna "true" e a posição disponivel
+                                                    //  e se não encontrar retona "false"
+
+                if (disponivel[0]) {
+                    inserirBloquear(tabuleiro, disponivel[1])
+                } else {
+                    removerDesbloquear(tabuleiro) // insere a ultima rainha no array de bloqueados e remove do array de rainhas
+                                                // Desbloqueia as posições de linha, coluna e diagonal referentes a rainha removida 
+                }
             }
-        }
+            tentativas++
+            console.log(tentativas)
+        }   
+        
+       
     
     }
-
 gridCreate()
 
 function reset() {
